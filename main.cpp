@@ -17,7 +17,7 @@ public:
     class nod{
     public: int valoare;
         int grad;
-        int v[100];
+        int v[100];// vectorul de adiacenta
         
         
     }n[100];
@@ -33,14 +33,12 @@ public:
     void drumuri(const graf&g);
     void dfs_auxiliar(int);     //funtie ajutatoare (pentru void dfs(int) )
     void dfs(int); //parcurgerea grafului in adancime
-    void componente_conexe(const graf g);
-    void bfs(int, int,const graf &g);
+    void componente_conexe(const graf &g);
+   void bfs(int, int,const graf &g);
     void BFS(int x);
-     graf operator+( const graf &c);
-    
-
-      
+    friend graf  operator+( const graf &c,const graf &q);
     void operator=(const graf&g);
+    
     friend istream & operator>>(istream&in, graf &g);
     friend ostream &operator<<(ostream&out,graf &c);
     
@@ -49,7 +47,7 @@ public:
     
     friend bool operator<(const graf &c, const graf &q);
     friend bool operator>(const graf &c, const graf &q);
-    int& operator[] (const int &index);
+   
     
 };
 graf::graf()
@@ -78,13 +76,14 @@ istream &operator>>(istream&in, graf &g)
         cout<<"dati in ordine crescatoare nodurile care sunt adiacente cu nodul "<<i;
         cout<<endl;
         for(j=1;j<=nr;j++)
-        {Grad++;
+        {Grad=Grad+1;
             in>>x;
             g.n[i].v[Grad]=x;
             g.n[i].grad= Grad;
             g.ma[i][x]=1;
             g.ma[x][i]=1;
         }
+    
         
         
     }
@@ -165,12 +164,12 @@ void  graf::operator=(const graf &g){
         
     }
 }
-graf graf ::operator+( const  graf &c){
+graf operator+( const  graf &c,const graf &g){
     int i,j;
   class  graf nou;
-    for(i=1;i<=nrnoduri;i++)
-    {for(j=1;j<=nrnoduri;j++)
-    {if(c.ma[i][j]!=0|| ma[i][j]!=0)
+    for(i=1;i<=g.nrnoduri;i++)
+    {for(j=1;j<=g.nrnoduri;j++)
+    {if(c.ma[i][j]!=0|| g.ma[i][j]!=0)
         { nou.ma[i][j]=1;
         nou.n[i].valoare=i;
             nou.n[i].v[j]=j;
@@ -178,9 +177,7 @@ graf graf ::operator+( const  graf &c){
         }
       
     }}
-    for(i=1;i<=c.nrnoduri;i++)
-    {for(j=1;j<=nou.n[i].grad;j++)
-        cout<<nou.n[i].valoare<<" "<<nou.n[i].v[j]<<endl;}
+   
     return nou;
 }
 void graf::ajutor(int nod)
@@ -198,6 +195,7 @@ void graf::set_viz(int nr)
  void graf::matrice(const graf &g){
      
      int i,j;
+     cout<<"Matricea de adiacenta:"<<endl;
      for(i=1;i<=g.nrnoduri;i++)
      {for(j=1;j<=g.nrnoduri;j++)
          cout<<g.ma[i][j]<<" ";
@@ -207,13 +205,13 @@ void graf::set_viz(int nr)
  }
 void graf::drumuri(const graf&g){
     int nod,i,j;
-    for(nod=1;nod<=g.nrnoduri;nod++) //parcurgere graf incepand de la fiecare nod
+    for(nod=1;nod<=g.nrnoduri;nod++)
     {for(j=1;j<=g.nrnoduri;j++)
-        viz[j]=0;  //pentru fiecare nod se face vectorul viz in prealabil 0
+        viz[j]=0;
         ajutor(nod);
         viz[nod]=0;
-        for(j=1;j<=g.nrnoduri;j++) //incarcare vector viz in matrice drum
-            drum[nod][j]=g.viz[j];
+        for(j=1;j<=g.nrnoduri;j++)
+            drum[nod][j]=viz[j];
     }
     cout<<endl<<"matricea drumurilor "<<endl;
     for(i=1;i<=g.nrnoduri;i++)
@@ -242,31 +240,30 @@ void graf::conex(const graf &g)
     else
         cout<< "Graful nu este conex";
 }
-void graf::bfs(int x, int k, const graf&g)
-{
-    int i,  p=1, u=1, a[50];
-    this->set_viz(0);
-    a[1]=x;
-    viz[x]=k;
-    while(p<=u)
+            void graf::bfs(int x, int k, const graf&g)
     {
-        x=a[p++];
-        for(i=1;i<=nrnoduri;i++)
-            if(ma[x][i]==1&&viz[i]==0)
-            {
-                a[++u]=i;
-              viz[i]=k;
-               
-            }
+        int i,  p=1, u=1, c[50];
+        this->set_viz(0);
+        c[1]=x;
+        viz[x]=k;
+        while(p<=u)
+        {
+            x=c[p++];
+            for(i=1;i<=g.nrnoduri;i++)
+                if(g.ma[x][i]==1&&viz[i]==0)
+                {
+                    c[++u]=i;
+                    viz[i]=k;
+                }
+        }
     }
-}
-void graf::componente_conexe(const graf g)
+void graf::componente_conexe(const graf &g)
 {
     int k, i, j;
     k=0;
     this->set_viz(0);
-    for(i=1;i<=nrnoduri;i++)
-        if(viz[i]==0)
+    for(i=1;i<=g.nrnoduri;i++)
+        if(g.viz[i]==0)
         {
             k++;
             this->bfs(i,k,g);
@@ -274,7 +271,7 @@ void graf::componente_conexe(const graf g)
     if(k==1)
     {
         cout<<'\n'<<"      O singura componenta conexa: ";
-        for(i=1;i<=nrnoduri;i++)
+        for(i=1;i<=g.nrnoduri;i++)
             cout<<i<<" ";
     }
     else
@@ -283,8 +280,8 @@ void graf::componente_conexe(const graf g)
         for(i=1;i<=k;i++)
         {
             cout<<"   Componenta "<<i<<": ";
-            for(j=1;j<=nrnoduri;j++)
-                if(viz[j]==i)
+            for(j=1;j<=g.nrnoduri;j++)
+                if(g.viz[j]==i)
                     cout<<j<<" ";
             cout<<'\n';
         }
@@ -481,9 +478,10 @@ int main()
                 
             }
             case 15:{
+                cin>>f;
+                cin>>g;
                 cout<<endl;
-                f=g;
-                cout<<f;
+                nou=f+g;
                 cout<<nou;
                 cout<<endl;
                 break;
